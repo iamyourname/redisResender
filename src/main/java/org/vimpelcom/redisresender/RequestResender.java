@@ -21,16 +21,18 @@ public class RequestResender {
             while (!empty) {
                 String host = jedis.hget("request:"+i,"host");
                 String body = jedis.hget("request:"+i,"body");
-                i++;
+
                 if(body==null){
                     empty=true;
+                    logger.info("Successfully resend "+(i-1)+" requests");
                     return;
                 }else{
-                   // logger.info(host+":"+body);
+                    i++;
+                    logger.info(host+":"+body);
                 }
             }
 
-            logger.info("Successfully resend "+i+" requests");
+
 
 
             //logger.info(""+jedis.hlen("request:19"));
