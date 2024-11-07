@@ -24,26 +24,27 @@ public class RequestResender {
             while (!empty) {
                 String host = jedis.hget("request:"+i,"host");
                 String body = jedis.hget("request:"+i,"body");
+                String needResend = jedis.hget("request:"+i,"needResend");
+                String key = "request:"+i;
+                logger.info("key "+ key);
                 if(body==null){
                     empty=true;
                     logger.info("Successfully resend "+(i-1)+" requests");
+                    jedis.set("NEED_RESEND","0");
                     return;
                 }else{
-                    i++;
+
                     //Thread.sleep(5000);
                     Runnable task = () -> {
                         logger.info("Thread"+Thread.currentThread().toString()+ "for"+ host+":"+body);
                         sendRequest(host,body);
-
+                        jedis.hset(key,"resend","1");
                          try{
                             int secToWait = 1000 * 1;
                             Thread.currentThread().sleep(secToWait);
                         }catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-
-
-
                         //System.out.println("New thread");
                         /*
                         try {
@@ -58,6 +59,7 @@ public class RequestResender {
                     thread.start();
                     thread.join();
 
+                    i++;
                 }
             }
         }catch (JedisConnectionException e){
